@@ -1,15 +1,18 @@
 please input a string:
 
 The project shall have two components:  a multi-thread server implementation and a multi-process test client with strong
- emphasis on the design and implementation.  Each project team’s test client is solely used to validate and improve the 
-server reliability, quality and measure performance.  Server shall support a simple application (convert an arbitrary si
-ze text file from upper case to lower case and vice versa, count number of characters, words, sentences, count # of time
-s each alphabet occurs, count # of times each word occurs.).  Both client and server need to collect its own statistics 
-and performance numbers.  Synchronization primitives are necessary to insure the correctness of statistics/performance.$
+ emphasis on the design and implementation.  
+Each project team’s test client is solely used to validate and improve the server reliability, quality and measure perfo
+rmance.  
+Server shall support a simple application (convert an arbitrary size text file from upper case to lower case and vice ve
+rsa, count number of characters, words, sentences, count # of times each alphabet occurs, count # of times each word occ
+urs.).  
+Both client and server need to collect its own statistics and performance numbers.  
+Synchronization primitives are necessary to insure the correctness of statistics/performance.$
 
 number of characters:594
 number of word:104
-number of sentences:1
+number of sentences:5
 
 Word frequency:
  a:3
@@ -112,16 +115,23 @@ Alphabet frequency:
 
 to upper:
 THE PROJECT SHALL HAVE TWO COMPONENTS:  A MULTI-THREAD SERVER IMPLEMENTATION AND A MULTI-PROCESS TEST CLIENT WITH STRONG
- EMPHASIS ON THE DESIGN AND IMPLEMENTATION.  EACH PROJECT TEAM’S TEST CLIENT IS SOLELY USED TO VALIDATE AND IMPROVE THE 
-SERVER RELIABILITY, QUALITY AND MEASURE PERFORMANCE.  SERVER SHALL SUPPORT A SIMPLE APPLICATION (CONVERT AN ARBITRARY SI
-ZE TEXT FILE FROM UPPER CASE TO LOWER CASE AND VICE VERSA, COUNT NUMBER OF CHARACTERS, WORDS, SENTENCES, COUNT # OF TIME
-S EACH ALPHABET OCCURS, COUNT # OF TIMES EACH WORD OCCURS.).  BOTH CLIENT AND SERVER NEED TO COLLECT ITS OWN STATISTICS 
-AND PERFORMANCE NUMBERS.  SYNCHRONIZATION PRIMITIVES ARE NECESSARY TO INSURE THE CORRECTNESS OF STATISTICS/PERFORMANCE.
+ EMPHASIS ON THE DESIGN AND IMPLEMENTATION.  
+EACH PROJECT TEAM’S TEST CLIENT IS SOLELY USED TO VALIDATE AND IMPROVE THE SERVER RELIABILITY, QUALITY AND MEASURE PERFO
+RMANCE.  
+SERVER SHALL SUPPORT A SIMPLE APPLICATION (CONVERT AN ARBITRARY SIZE TEXT FILE FROM UPPER CASE TO LOWER CASE AND VICE VE
+RSA, COUNT NUMBER OF CHARACTERS, WORDS, SENTENCES, COUNT # OF TIMES EACH ALPHABET OCCURS, COUNT # OF TIMES EACH WORD OCC
+URS.).  
+BOTH CLIENT AND SERVER NEED TO COLLECT ITS OWN STATISTICS AND PERFORMANCE NUMBERS.  
+SYNCHRONIZATION PRIMITIVES ARE NECESSARY TO INSURE THE CORRECTNESS OF STATISTICS/PERFORMANCE.
 
 to lower:
 the project shall have two components:  a multi-thread server implementation and a multi-process test client with strong
- emphasis on the design and implementation.  each project team’s test client is solely used to validate and improve the 
-server reliability, quality and measure performance.  server shall support a simple application (convert an arbitrary si
-ze text file from upper case to lower case and vice versa, count number of characters, words, sentences, count # of time
-s each alphabet occurs, count # of times each word occurs.).  both client and server need to collect its own statistics 
-and performance numbers.  synchronization primitives are necessary to insure the correctness of statistics/performance.
+ emphasis on the design and implementation.  
+each project team’s test client is solely used to validate and improve the server reliability, quality and measure perfo
+rmance.  
+server shall support a simple application (convert an arbitrary size text file from upper case to lower case and vice ve
+rsa, count number of characters, words, sentences, count # of times each alphabet occurs, count # of times each word occ
+urs.).  
+both client and server need to collect its own statistics and performance numbers.  
+synchronization primitives are necessary to insure the correctness of statistics/performance.
+
