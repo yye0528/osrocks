@@ -1,8 +1,13 @@
 /*
- * main.cpp
+ * wordcount.cpp
  *
  *  Created on: Oct 23, 2013
  *      Author: ryan
+ *
+ *
+ * wordcount.cpp consists of the class wordCount and a demo program main(),
+ * which invites user to input a text ENDING WITH '$' and display the result.
+ *
  */
 
 #include <string>
