@@ -142,11 +142,11 @@ void *get_in_addr(struct sockaddr *sa)
 
 void* serve_it(void* arg)
 {
+	string receive;
  	wordCount wc=wordCount();
 
  	int Client = (int) (arg);
     char buf[256];
-    FILE *file;
  	bzero(buf,256);
 
 
@@ -162,16 +162,6 @@ void* serve_it(void* arg)
 
  	printf("Connection %d accepted\n", new_fd);
 
-	file = fopen(filename, "wb");
-	if (file == NULL) 
-	{
-        	printf("File not found!\n");
-        	exit(1);
-	}
-	else 
-	{
-       		printf("Found file %s\n", filename);
-	}
 	while(1){
 		bzero(buf,256);
 		int bytes_receive = recv(Client,buf,sizeof(buf),0);
@@ -186,20 +176,11 @@ void* serve_it(void* arg)
 			exit(1);
 		}
 
-
-		int bytes_written = fwrite(buf, 1, bytes_receive, file);
-
-		if (bytes_written < 0)
-		{
-			printf("ERROR writing in file");
-			exit(1);
-		}
-
+		receive+=buf;
 	}
-	fclose(file);
 	close(Client);
 
-	wc.loadFromFile("output.txt");
+	wc.setStr(receive);
 	//wc.printFWord();
 
 	cout<<"number of characters:";
