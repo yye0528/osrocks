@@ -11,7 +11,13 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+
+
+#include <iostream>
+#include <iomanip>
 #include "wordcount.h"
+
+using namespace std;
 
 #define PORT "3490"  // the port users will be connecting to
 
@@ -21,14 +27,12 @@
 
 
 int new_fd;
-void sigchld_handler(int s);
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa);
 
-void* server_thread(void* arg);
 
-void serve_it(int Client);
+void* serve_it(void*);
 
 
 int main(void)
@@ -37,12 +41,10 @@ int main(void)
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // connector's address information
     socklen_t sin_size;
-    struct sigaction sa;
     int yes=1;
     char s[INET6_ADDRSTRLEN];
     int rv;
-    char buf[2048];
-    FILE *file;  
+
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -89,11 +91,21 @@ int main(void)
         exit(1);
     }
 
+
+
+    pthread_t t_id;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr); // Creating thread attributes
+    pthread_attr_setschedpolicy(&attr, SCHED_FIFO); // FIFO scheduling for threads
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); // Don't want threads (particualrly main)
+                                                                 // waiting on each other
+
     printf("server: waiting for connections...\n");
 
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        cout<<"accepted!"<<endl;
         if (new_fd == -1) {
             perror("accept");
             continue;
@@ -104,9 +116,14 @@ int main(void)
             s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-	serve_it(new_fd);
-	close(new_fd);       
-    } 
+
+        //reserve client socket on behalf of child thread
+
+        int n=pthread_create(&t_id, &attr, &serve_it,(void*)new_fd);
+        cout<<"thread number: "<<n<<endl;
+        sleep(0); // Giving threads some CPU time
+
+    }//while
     
     return 0;
 }
@@ -123,10 +140,11 @@ void *get_in_addr(struct sockaddr *sa)
 }
 
 
-void serve_it(int Client)
+void* serve_it(void* arg)
 {
  	wordCount wc=wordCount();
 
+ 	int Client = (int) (arg);
     char buf[256];
     FILE *file;
  	bzero(buf,256);
@@ -179,6 +197,7 @@ void serve_it(int Client)
 
 	}
 	fclose(file);
+	close(Client);
 
 	wc.loadFromFile("output.txt");
 	//wc.printFWord();
@@ -192,6 +211,6 @@ void serve_it(int Client)
 	cout<<"number of sentences:";
 	cout<<wc.getNSentence()<<endl;
 
-
+	pthread_exit(0);
 }
 
