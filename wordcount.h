@@ -23,8 +23,9 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
-#include <boost/regex.hpp>
 #include <fstream>
+#include <boost/regex.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
@@ -40,13 +41,14 @@ public:
 	frequencyMap getFaphabet() const;
 	unsigned long getFWord(string);
 	unsigned long getFaphabet(string);
+	string getSummary();
 
 	void printFWord();
 	void printFAlphabet();
 	void print() const;
 
 	string toUpper();
-	string toLodwer();
+	string toLower();
 
 	void setStr(string&);
 	void count();
@@ -55,14 +57,16 @@ public:
 	wordCount();
 	void loadFromFile(char fname[50]);
 
+
 private:
 	unsigned long nChar;
 	unsigned long nWord;
 	unsigned long nSentence;
 	frequencyMap fWord;
 	frequencyMap fAlpha;
-
 	string inputStr;
+
+
 };
 
 
@@ -113,7 +117,7 @@ string wordCount::toUpper()
 	transform(tmp.begin(), tmp.end(), tmp.begin(), ::toupper);
 	return tmp;
 }
-string wordCount::toLodwer()
+string wordCount::toLower()
 {
 	string tmp=inputStr;
 	transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
@@ -208,7 +212,45 @@ void wordCount::loadFromFile(char fname[50])
 	infile.close();
 
 	setStr(str);
+}
+string wordCount::getSummary(){
+	string summary;
 
+	summary+="To upper case:\n";
+	summary+=toUpper();
+	summary+="\n\n";
+	summary+="To lower case:\n";
+	summary+=toLower();
+	summary+="\n\n";
+	summary+="number of characters:";
+	summary+=boost::lexical_cast<string>(getNchar());
+	summary+="\n";
+	summary+="number of word:";
+	summary+=boost::lexical_cast<string>(getNword());
+	summary+="\n";
+	summary+="number of sentences:";
+	summary+=boost::lexical_cast<string>(getNSentence());
+	summary+="\n\n";
+
+	summary+= "Word frequency:\n";
+	for (frequencyMap::iterator it = fWord.begin(); it != fWord.end(); ++it )
+	{
+		summary+= " ";
+		summary+= it->first;
+		summary+= ":";
+		summary+=boost::lexical_cast<string>(it->second);
+		summary+="\n";
+	}
+	summary+= "\nAlphabet frequency:\n";
+	for (frequencyMap::iterator it = fAlpha.begin(); it != fAlpha.end(); ++it )
+	{
+		summary+= " ";
+		summary+= it->first;
+		summary+= ":";
+		summary+=boost::lexical_cast<string>(it->second);
+		summary+="\n";
+	}
+	return summary;
 }
 
 
