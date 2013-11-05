@@ -24,7 +24,7 @@
 using namespace std;
 
 const char PORT[]= "3490";  // the port users will be connecting to
-const int BACKLOG=20;     // how many pending connections queue will hold
+const int BACKLOG=1000;     // how many pending connections queue will hold
 const int MAXTHREADNUM=10;
 const int BUFFERSIZE=4096;
 long serviceCount=0;	//total number client that had been served
@@ -36,6 +36,7 @@ sem_t thread_sem; //thread number semaphore
 
 void* serve_it(void*);
 void* stat(void*);
+void *get_in_addr(struct sockaddr *sa);
 
 int main(void)
 {
@@ -45,6 +46,7 @@ int main(void)
     socklen_t sin_size;
     int yes=1;
     int rv;
+    char client_ip[INET6_ADDRSTRLEN];
 
     sem_init(&thread_sem, 0, MAXTHREADNUM);	//initialize the semaphore to 10
 
@@ -108,7 +110,7 @@ int main(void)
 
 
     while(1) {  // main accept() loop
-    	 cout<<"server: waiting for connections...\n";
+    	 cout<<"Server: waiting for new connections..."<<endl;
 
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
@@ -116,10 +118,13 @@ int main(void)
         	cerr<<"error in accept"<<endl;
             continue;
         }
+        inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),client_ip, sizeof client_ip);
+    	cout<<"Server: connection from "<<client_ip<<" accepted."<<endl;
 
         sem_wait(&thread_sem); //wait the thread semaphore
         pthread_create(&t_id[thread_n], &attr, &serve_it,(void*)new_fd); //create a new thread to handle the connection
         thread_n=(thread_n+1)%MAXTHREADNUM; //increment the thread iterator
+        cout<<"Server: new thread 'Service no."<<serviceCount+1<<"' is created to serve "<<client_ip<<endl;
 
         sleep(0); // Giving threads some CPU time
 
@@ -131,7 +136,15 @@ int main(void)
 
 void* serve_it(void* arg) //serving thread routine
 {
+
+    pthread_mutex_lock (&lock);
+	serviceCount++;
+	pthread_mutex_unlock (&lock);
+
 	int csocket_df = (int) (arg);
+	int service_no=serviceCount;
+	int sent_total=0;
+	string end_mark="$END$";
 	string receive;
 	string report;
  	wordCount wc=wordCount();
@@ -140,6 +153,8 @@ void* serve_it(void* arg) //serving thread routine
  	const clock_t begin_time = clock();
  	double timeDiff;
 
+
+
 	//check if df is passed properly
 	if (csocket_df < 0)
 	{ 
@@ -147,7 +162,6 @@ void* serve_it(void* arg) //serving thread routine
 		sem_post(&thread_sem);
 		pthread_exit(0);
 	}
-	cout<<"Connection "<<csocket_df<<" accepted."<<endl;
 
 	//read input from an accepted client
 	while(1){
@@ -165,10 +179,14 @@ void* serve_it(void* arg) //serving thread routine
 			pthread_exit(0);
 		}
 
-		//cout<<bytes_receive<<"  bytes received"<<endl;
-
+		cout<<"Service no."<<service_no<<": "<<bytes_receive<<"  bytes received"<<endl;
 		receive+=buf; //append content from buffer to string variable
-		if(bytes_receive<BUFFERSIZE) break; //stop looping after recv done
+
+		unsigned found = receive.rfind(end_mark);
+		if (found!=string::npos){//stop looping after end mark is detected
+		    receive.erase(found,end_mark.length()); //remove the end mark
+		    break;
+		}
 
 	}
 
@@ -179,38 +197,43 @@ void* serve_it(void* arg) //serving thread routine
 		pthread_exit(0);
 	}
 
-	cout<<receive.length()<<" bytes have been received. Start to process..."<<endl;
+	cout<<"Service no."<<service_no<<": A total of "<<receive.length()<<" bytes have been received. Start to process..."<<endl;
 
 	//process the input
 	wc.setStr(receive);
 	report=wc.getSummary();
-	cout<<"Processing complete."<<endl;
+	cout<<"Service no."<<service_no<<": "<<"Processing complete. Length of report: "<<report.length()<<endl;
 	//cout<<report;
 
 	//sent result back
 	while (report.length()>0){
 		bzero(buf,BUFFERSIZE);
 		string tmp=report.substr(0,(report.length()>BUFFERSIZE)?BUFFERSIZE:report.length());
-		report.erase(0,tmp.length());
+		report.erase(0,tmp.length());//reduce the report to unsent part
 		strcpy(buf,tmp.c_str());
 
 		int bytes_sent = send(csocket_df,buf,BUFFERSIZE,0);
-		if (bytes_sent < 0)
+		sent_total+=bytes_sent;
+		cout<<"Service no."<<service_no<<": "<<bytes_sent<<" bytes sent"<<endl;
+		if (bytes_sent <= 0)
 		{
 			perror("ERROR writing to socket");
 			close(csocket_df);
 			sem_post(&thread_sem);
 			pthread_exit(0);
 		}
-
 	}
 
-	timeDiff = float( clock () - begin_time ) /  CLOCKS_PER_SEC;
+	cout<<"Service no."<<service_no<<": A total of "<<sent_total<<" bytes have been sent."<<endl;
 
-	cout<<"Service finished. Time usage of this service: "<<timeDiff<<endl;
+	//cout<<"Service no."<<service_no<<": "<<"before clock()"<<endl;
+	timeDiff = float( clock () - begin_time ) /  CLOCKS_PER_SEC;
+	//cout<<"Service no."<<service_no<<": "<<"after clock()"<<endl;
+
+	cout<<"Service no."<<service_no<<": "<<"Service finished. Time usage of this service: "
+			<<timeDiff<<"s."<<endl;
 
     pthread_mutex_lock (&lock);
-	serviceCount++;
     serviceTime+=timeDiff;
 	pthread_mutex_unlock (&lock);
 
@@ -228,7 +251,7 @@ void* stat(void* arg) //statistics thread routine
 	double totalTime=0;
 	time(&origin);
 	while(1){
-		cout<<"Stat thread is standing by. Enter anything to see stats. \n";
+		cout<<"Stat thread is standing by. Enter any charactor to see stats"<<endl<<endl;
 		cin.ignore();
 		cin.get();
 		sem_getvalue(&thread_sem, &sem_value);
@@ -237,12 +260,21 @@ void* stat(void* arg) //statistics thread routine
 		strftime(timebuff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
 		totalTime=difftime(now,origin);
 		cout<<"=========================================================="<<endl;
-		cout<<"Stat information as of "<<timebuff<<":"<<endl;
+		cout<<"Stat information as of "<<timebuff<<endl;
 		cout<<"Number of serving thread: "<<thread_count<<endl;
 		cout<<"Number of clients have been served: "<<serviceCount<<endl;
-		cout<<"Seconds of time used in serving:"<<serviceTime<<endl;
-		cout<<"Seconds of time since server started:"<<totalTime<<endl;
+		cout<<"Time used in serving: "<<serviceTime<<"s"<<endl;
+		cout<<"Time since server started: "<<totalTime<<"s"<<endl;
 		cout<<"=========================================================="<<endl;
 	}
 }
 
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
