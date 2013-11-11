@@ -14,9 +14,9 @@
 #include <sys/time.h>
 #include <semaphore.h>
 #include <time.h>
+ #include <sys/times.h>
+#include <sys/vtimes.h>
 #include <ctime>
-
-
 #include <iostream>
 #include <iomanip>
 #include "wordcount.h"
@@ -24,11 +24,13 @@
 using namespace std;
 
 const char PORT[]= "3490";  // the port users will be connecting to
-const int BACKLOG=1000;     // how many pending connections queue will hold
-const int MAXTHREADNUM=10;
-const int BUFFERSIZE=4096;
+const int BACKLOG=100;     // how many pending connections queue will hold
+const int MAXTHREADNUM=10;	//thread number limit
+const int BUFFERSIZE=4096;	//socket buffer
 long serviceCount=0;	//total number client that had been served
-double serviceTime=0;
+double serviceTime=0;	//total time since server program started
+static clock_t lastCPU, lastSysCPU, lastUserCPU; //for CPU usage
+static int numProcessors; //for CPU usage
 
 pthread_mutex_t lock; //counter and timer lock
 sem_t thread_sem; //thread number semaphore
@@ -36,7 +38,12 @@ sem_t thread_sem; //thread number semaphore
 
 void* serve_it(void*);
 void* stat(void*);
-void *get_in_addr(struct sockaddr *sa);
+void* get_in_addr(struct sockaddr *sa);
+void nsleep(int milisec);
+void cpu_usage_init();
+double get_cpu_usage();
+int get_memory_usage();
+int parseLine(char*);
 
 int main(void)
 {
@@ -58,7 +65,8 @@ int main(void)
     pthread_attr_setschedpolicy(&attr, SCHED_FIFO); // FIFO scheduling for threads
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); // Don't want threads  waiting on each other
 
-    pthread_create(&t_stat, &attr, &stat, NULL);
+    pthread_create(&t_stat, &attr, &stat, NULL); //start statistics thread
+    cpu_usage_init();
 
     //initialize socket
     memset(&hints, 0, sizeof hints);
@@ -78,38 +86,31 @@ int main(void)
         	cerr<<"error in creating socket."<<endl;
             continue;
         }
-
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
                 sizeof(int)) == -1) {
         	cerr<<"error in setsockopt."<<endl;
             exit(1);
         }
-
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             close(sockfd);
             cerr<<"error in biding."<<endl;
             continue;
         }
-
         break;
     }
-
     if (p == NULL)  {
         cerr<<"server: failed to bind"<<endl;
         return 2;
     }
-
     freeaddrinfo(servinfo); // all done with this structure
-
     if (listen(sockfd, BACKLOG) == -1) {
         cerr<<"error in listening"<<endl;
         exit(1);
     }
 
 
-
-
-    while(1) {  // main accept() loop
+    // main accept() loop
+    while(1) {
     	 cout<<"Server: waiting for new connections..."<<endl;
 
         sin_size = sizeof their_addr;
@@ -150,10 +151,8 @@ void* serve_it(void* arg) //serving thread routine
  	wordCount wc=wordCount();
     char buf[BUFFERSIZE];
  	bzero(buf,BUFFERSIZE);
- 	const clock_t begin_time = clock();
- 	double timeDiff;
-
-
+ 	time_t start_time,end_time;
+ 	time(&start_time);
 
 	//check if df is passed properly
 	if (csocket_df < 0)
@@ -179,7 +178,7 @@ void* serve_it(void* arg) //serving thread routine
 			pthread_exit(0);
 		}
 
-		cout<<"Service no."<<service_no<<": "<<bytes_receive<<"  bytes received"<<endl;
+		//cout<<"Service no."<<service_no<<": "<<bytes_receive<<"  bytes received"<<endl;
 		receive+=buf; //append content from buffer to string variable
 
 		unsigned found = receive.rfind(end_mark);
@@ -192,12 +191,13 @@ void* serve_it(void* arg) //serving thread routine
 
 	if(receive.length()==0){ //no string was received from this connection.
 		cout<<"Empty input."<<endl;
+
 		close(csocket_df);
 		sem_post(&thread_sem);
 		pthread_exit(0);
 	}
 
-	cout<<"Service no."<<service_no<<": A total of "<<receive.length()<<" bytes have been received. Start to process..."<<endl;
+	cout<<"Service no."<<service_no<<": A total of "<<receive.length()+5<<" bytes have been received. Start to process..."<<endl;
 
 	//process the input
 	wc.setStr(receive);
@@ -211,10 +211,8 @@ void* serve_it(void* arg) //serving thread routine
 		string tmp=report.substr(0,(report.length()>BUFFERSIZE)?BUFFERSIZE:report.length());
 		report.erase(0,tmp.length());//reduce the report to unsent part
 		strcpy(buf,tmp.c_str());
-
-		int bytes_sent = send(csocket_df,buf,BUFFERSIZE,0);
+		int bytes_sent = send(csocket_df,buf,tmp.length(),0);
 		sent_total+=bytes_sent;
-		cout<<"Service no."<<service_no<<": "<<bytes_sent<<" bytes sent"<<endl;
 		if (bytes_sent <= 0)
 		{
 			perror("ERROR writing to socket");
@@ -222,19 +220,18 @@ void* serve_it(void* arg) //serving thread routine
 			sem_post(&thread_sem);
 			pthread_exit(0);
 		}
+		nsleep(10);
 	}
 
-	cout<<"Service no."<<service_no<<": A total of "<<sent_total<<" bytes have been sent."<<endl;
+	cout<<"Service no."<<service_no<<": A total of "<<sent_total<<" bytes have been sent back"<<endl;
 
-	//cout<<"Service no."<<service_no<<": "<<"before clock()"<<endl;
-	timeDiff = float( clock () - begin_time ) /  CLOCKS_PER_SEC;
-	//cout<<"Service no."<<service_no<<": "<<"after clock()"<<endl;
-
-	cout<<"Service no."<<service_no<<": "<<"Service finished. Time usage of this service: "
-			<<timeDiff<<"s."<<endl;
+	time(&end_time);
+	double time_diff=end_time-start_time
+	cout<<"Service no."<<service_no<<": Service finished. Time usage of this service: "
+			<<time_diff<<"s."<<endl;
 
     pthread_mutex_lock (&lock);
-    serviceTime+=timeDiff;
+    serviceTime+=time_diff;
 	pthread_mutex_unlock (&lock);
 
 	close(csocket_df); //close the client socket file description
@@ -251,7 +248,7 @@ void* stat(void* arg) //statistics thread routine
 	double totalTime=0;
 	time(&origin);
 	while(1){
-		cout<<"Stat thread is standing by. Enter any charactor to see stats"<<endl<<endl;
+		cout<<"Statistics thread is standing by. Enter any character to display"<<endl<<endl;
 		cin.ignore();
 		cin.get();
 		sem_getvalue(&thread_sem, &sem_value);
@@ -261,9 +258,11 @@ void* stat(void* arg) //statistics thread routine
 		totalTime=difftime(now,origin);
 		cout<<"=========================================================="<<endl;
 		cout<<"Stat information as of "<<timebuff<<endl;
+		cout<<"Server process CPU usage: "<<get_cpu_usage()<<"%"<<endl;
+		cout<<"Server process RAM usage: "<<get_memory_usage()<<"KB"<<endl;
 		cout<<"Number of serving thread: "<<thread_count<<endl;
 		cout<<"Number of clients have been served: "<<serviceCount<<endl;
-		cout<<"Time used in serving: "<<serviceTime<<"s"<<endl;
+		cout<<"Sum of time used in serving: "<<serviceTime<<"s"<<endl;
 		cout<<"Time since server started: "<<totalTime<<"s"<<endl;
 		cout<<"=========================================================="<<endl;
 	}
@@ -277,4 +276,87 @@ void *get_in_addr(struct sockaddr *sa)
     }
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+//sleep for some time
+void nsleep(int milisec)
+{
+    struct timespec delay;
+    delay.tv_sec = 0;
+    delay.tv_nsec =milisec * 1000000L;
+
+    if (nanosleep(&delay, NULL)) {
+	  perror("nanosleep");
+    }
+}
+
+void cpu_usage_init(){
+    FILE* file;
+    struct tms timeSample;
+    char line[128];
+
+
+    lastCPU = times(&timeSample);
+    lastSysCPU = timeSample.tms_stime;
+    lastUserCPU = timeSample.tms_utime;
+
+
+    file = fopen("/proc/cpuinfo", "r");
+    numProcessors = 0;
+    while(fgets(line, 128, file) != NULL){
+        if (strncmp(line, "processor", 9) == 0) numProcessors++;
+    }
+    fclose(file);
+}
+
+
+double get_cpu_usage(){
+    struct tms timeSample;
+    clock_t now;
+    double percent;
+
+
+    now = times(&timeSample);
+    if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
+        timeSample.tms_utime < lastUserCPU){
+        //Overflow detection. Just skip this value.
+        percent = -1.0;
+    }
+    else{
+        percent = (timeSample.tms_stime - lastSysCPU) +
+            (timeSample.tms_utime - lastUserCPU);
+        percent /= (now - lastCPU);
+        percent /= numProcessors;
+        percent *= 100;
+    }
+    lastCPU = now;
+    lastSysCPU = timeSample.tms_stime;
+    lastUserCPU = timeSample.tms_utime;
+
+
+    return percent;
+}
+
+int get_memory_usage(){ //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmRSS:", 6) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+    return result;
+}
+
+int parseLine(char* line){
+    int i = strlen(line);
+    while (*line < '0' || *line > '9') line++;
+    line[i-3] = '\0';
+    i = atoi(line);
+    return i;
 }
