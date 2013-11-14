@@ -13,7 +13,7 @@ Steps to build & run the server program in LINUX:
 3. Download boost (http://sourceforge.net/projects/boost/files/boost/1.55.0/) and unzip the file
 
 4. In the boost root directory (*path of unzipped folder*/boost_1_55_0/), run bootstrap program with the option of building regex library only: 
-$ sudo ./bootstrap.sh --with-libraries=regex
+$ ./bootstrap.sh --with-libraries=regex
 
 5. In boost root directory, run the installation program: 
 $ ./b2 install
@@ -40,7 +40,7 @@ Steps to build & run the client program in LINUX:
 $ sudo chmod 775 openmpi_install.sh
 
 3. In the direcotry that contains openmpi_install.sh, run the script to get & build openmpi and set up its runtime:
-$ sudo ./openmpi_installer.sh
+$ ./openmpi_installer.sh
 
 4. In the directory that contains multiclient.cpp, build the client program using MPI c++ builder:
 $ mpic++ multiclient.cpp -o client.exe
