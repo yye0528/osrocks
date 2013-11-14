@@ -12,11 +12,11 @@ Steps to build & run the server program in LINUX:
 
 3. Download boost (http://sourceforge.net/projects/boost/files/boost/1.55.0/) and unzip the file
 
-4. In the boost root directory (*path of unzipped folder*/boost_1_54_0/), run bootstrap program with the option of building regex library only: 
+4. In the boost root directory (*path of unzipped folder*/boost_1_55_0/), run bootstrap program with the option of building regex library only: 
 $ sudo ./bootstrap.sh --with-libraries=regex
 
 5. In boost root directory, run the installation program: 
-$ sudo ./b2 install
+$ ./b2 install
 
 6. Change settings in IDE (set include directory and library directory) before using IDE integrated builder
 OR use the following compiler & linker command to build server1.cpp:
