@@ -37,7 +37,7 @@ Steps to build & run the client program in LINUX:
 1. Get a copy of multiclient.cpp as well as openmpi_install.sh from the project GitHub repository (by either forking the whole repository or just copy & paste the code). 
 
 2. In the direcotry that contains openmpi_install.sh, change the execution permission of this file:
-$ sudo chmod 775 openmpi_install.sh
+$ sudo chmod 775 openmpi_installer.sh
 
 3. In the direcotry that contains openmpi_install.sh, run the script to get & build openmpi and set up its runtime:
 $ ./openmpi_installer.sh
