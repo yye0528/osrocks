@@ -8,15 +8,15 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "mpi.h"
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include "mpi.h"
 
 using namespace std;
 
-void *get_in_addr(struct sockaddr *sa);
-void nsleep(int milisec);
+void *get_in_addr(struct sockaddr *sa); // get ip address
+void nsleep(int milisec); //sleep in millisecond
 
 int main(int argc, char *argv[])
 {
@@ -37,12 +37,16 @@ int main(int argc, char *argv[])
     int rv;
     char s[INET6_ADDRSTRLEN];
 
+    if (argc < 2) {
+        cout<<"ERROR: server IP not specified";
+        exit(1);
+    }
 
-	MPI_Init(&argc,&argv);
-	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Init(&argc,&argv); //multi-process section begin
+	MPI_Comm_size(MPI_COMM_WORLD, &numtasks); //get number of tasks
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank); //get the task rank for each process
 
-	nsleep(rank*100);
+	nsleep(rank*100); //delay some time so tasks are ordered in execution
 	start_time = MPI_Wtime();
 	cout<<"Client no."<<rank+1<<": process created"<<endl;
 
@@ -85,7 +89,6 @@ int main(int argc, char *argv[])
 
 
     //locate the file to be sent
-
 	if(numtasks>1){
 		sprintf (send_file, "harrypotter/ch%d.txt", rank+1);
 		sprintf (recv_file, "harrypotter/out/ch%d.txt", rank+1);
@@ -98,11 +101,6 @@ int main(int argc, char *argv[])
 
 
 	cout<<"Client no."<<rank+1<<": reading from file "<<send_file<<endl;
-
-    if (argc < 2) {
-        fprintf(stderr,"usage: client hostname\n");
-        exit(1);
-    }
 
     //read file to input
 	FILE *file;
@@ -137,7 +135,6 @@ int main(int argc, char *argv[])
 			perror("ERROR writing to socket");
 			exit(0);
 		}
-		nsleep(1);
 	}
 	cout<<"Client no."<<rank+1<<": "<<sent_total<<" bytes have been sent. Waiting for server response..."<<endl;
 
@@ -193,14 +190,11 @@ int main(int argc, char *argv[])
 	cout<<"Client no."<<rank+1<<": task finished. Time usage of this task: "
 			<<end_time-start_time<<"s."<<endl;
 
-    MPI_Finalize();
-
-
-
+    MPI_Finalize(); //multi-process section finish
     return 0;
 }
 
-// get sockaddr, IPv4 or IPv6:
+// get ip address
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
@@ -210,12 +204,12 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-//sleep for some time
-void nsleep(int milisec)
+//sleep in millisecond
+void nsleep(int millisec)
 {
     struct timespec delay;
     delay.tv_sec = 0;
-    delay.tv_nsec =milisec * 1000000L;
+    delay.tv_nsec =millisec * 1000000L;
 
     if (nanosleep(&delay, NULL)) {
 	  perror("nanosleep");

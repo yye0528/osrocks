@@ -29,21 +29,18 @@ const int MAXTHREADNUM=10;	//thread number limit
 const int BUFFERSIZE=4096;	//socket buffer
 long serviceCount=0;	//total number client that had been served
 double serviceTime=0;	//total time since server program started
-static clock_t lastCPU, lastSysCPU, lastUserCPU; //for CPU usage
-static int numProcessors; //for CPU usage
-
+static clock_t lastCPU, lastSysCPU, lastUserCPU; //for CPU usage stat
+static int numProcessors; //for CPU usage stat
 pthread_mutex_t lock; //counter and timer lock
 sem_t thread_sem; //thread number semaphore
 
-
-void* serve_it(void*);
-void* stat(void*);
-void* get_in_addr(struct sockaddr *sa);
-void nsleep(int milisec);
-void cpu_usage_init();
-double get_cpu_usage();
-int get_memory_usage();
-int parseLine(char*);
+void* serve_it(void*); //serving thread routine
+void* stat(void*); //statistics thread routine
+void* get_in_addr(struct sockaddr *sa); //get ip address
+void cpu_usage_init(); //read number of cpu cores
+double get_cpu_usage(); //read cpu usage
+int get_memory_usage(); //read memory usage
+int parseLine(char*); //file parsing utility
 
 int main(void)
 {
@@ -129,13 +126,13 @@ int main(void)
 
         sleep(0); // Giving threads some CPU time
 
-    }//while
+    }//end while
     
     return 0;
 }
 
-
-void* serve_it(void* arg) //serving thread routine
+//serving thread routine
+void* serve_it(void* arg)
 {
 
     pthread_mutex_lock (&lock);
@@ -153,6 +150,8 @@ void* serve_it(void* arg) //serving thread routine
  	bzero(buf,BUFFERSIZE);
  	time_t start_time,end_time;
  	time(&start_time);
+ 	struct timeval tvalBefore, tvalAfter;
+ 	gettimeofday (&tvalBefore, NULL);
 
 	//check if df is passed properly
 	if (csocket_df < 0)
@@ -206,7 +205,7 @@ void* serve_it(void* arg) //serving thread routine
 	cout<<"Service no."<<service_no<<": "<<"Processing complete. Length of report: "<<report.length()<<endl;
 	//cout<<report;
 
-	//sent result back
+	//send result back
 	while (report.length()>0){
 		bzero(buf,BUFFERSIZE);
 		string tmp=report.substr(0,(report.length()>BUFFERSIZE)?BUFFERSIZE:report.length());
@@ -221,13 +220,15 @@ void* serve_it(void* arg) //serving thread routine
 			sem_post(&thread_sem);
 			pthread_exit(0);
 		}
-		//nsleep(10);
 	}
 
 	cout<<"Service no."<<service_no<<": A total of "<<sent_total<<" bytes have been sent back"<<endl;
 
 	time(&end_time);
-	double time_diff=end_time-start_time;
+	gettimeofday (&tvalAfter, NULL);
+
+	//double time_diff=end_time-start_time;
+	float time_diff=tvalAfter.tv_sec - tvalBefore.tv_sec+((tvalAfter.tv_usec - tvalBefore.tv_usec)/1000000.0);
 	cout<<"Service no."<<service_no<<": Service finished. Time usage of this service: "
 			<<time_diff<<"s."<<endl;
 
@@ -241,7 +242,8 @@ void* serve_it(void* arg) //serving thread routine
 
 }
 
-void* stat(void* arg) //statistics thread routine
+//statistics thread routine
+void* stat(void* arg)
 {
 	int sem_value,thread_count;
 	time_t origin,now;
@@ -269,7 +271,7 @@ void* stat(void* arg) //statistics thread routine
 	}
 }
 
-// get sockaddr, IPv4 or IPv6:
+// get ip address
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
@@ -277,18 +279,6 @@ void *get_in_addr(struct sockaddr *sa)
     }
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
-//sleep for some time
-void nsleep(int milisec)
-{
-    struct timespec delay;
-    delay.tv_sec = 0;
-    delay.tv_nsec =milisec * 1000000L;
-
-    if (nanosleep(&delay, NULL)) {
-	  perror("nanosleep");
-    }
 }
 
 void cpu_usage_init(){
