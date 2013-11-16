@@ -148,8 +148,6 @@ void* serve_it(void* arg)
  	wordCount wc=wordCount();
     char buf[BUFFERSIZE];
  	bzero(buf,BUFFERSIZE);
- 	time_t start_time,end_time;
- 	time(&start_time);
  	struct timeval tvalBefore, tvalAfter;
  	gettimeofday (&tvalBefore, NULL);
 
@@ -224,10 +222,8 @@ void* serve_it(void* arg)
 
 	cout<<"Service no."<<service_no<<": A total of "<<sent_total<<" bytes have been sent back"<<endl;
 
-	time(&end_time);
 	gettimeofday (&tvalAfter, NULL);
 
-	//double time_diff=end_time-start_time;
 	float time_diff=tvalAfter.tv_sec - tvalBefore.tv_sec+((tvalAfter.tv_usec - tvalBefore.tv_usec)/1000000.0);
 	cout<<"Service no."<<service_no<<": Service finished. Time usage of this service: "
 			<<time_diff<<"s."<<endl;
