@@ -244,6 +244,7 @@ void* stat(void* arg)
 	int sem_value,thread_count;
 	char timebuff[20];
  	struct timeval time_start, time_curr;
+ 	time_t now;
  	float total_time;
  	gettimeofday (&time_start, NULL);
 	while(1){
