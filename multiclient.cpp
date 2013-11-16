@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	char recv_file[50];
 	string input;
 	string report;
+	string end_mark="$END$";
 	double start_time, end_time;
 	const char PORT[]="3490"; // the port client will be connecting to
 	const int MAXDATASIZE=4096; // max number of bytes we can get at once
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	nsleep(rank*100);
+	start_time = MPI_Wtime();
 	cout<<"Client no."<<rank+1<<": process created"<<endl;
 
     memset(&hints, 0, sizeof hints);
@@ -93,7 +95,7 @@ int main(int argc, char *argv[])
 		cin>>send_file;
 		sprintf (recv_file, "out.txt");
 	}
-	start_time = MPI_Wtime();
+
 
 	cout<<"Client no."<<rank+1<<": reading from file "<<send_file<<endl;
 
@@ -118,7 +120,7 @@ int main(int argc, char *argv[])
 		input+=buf;
 	}
 
-	input+="$END$";
+	input+=end_mark;
 
 	//sent input
 	while (input.length()>0){
@@ -140,8 +142,7 @@ int main(int argc, char *argv[])
 	cout<<"Client no."<<rank+1<<": "<<sent_total<<" bytes have been sent. Waiting for server response..."<<endl;
 
     //read server response
-	FILE *file1;
-	file1 = fopen(recv_file, "w+");
+
 	while(1){
 		bzero(buf,sizeof(buf));
 		int bytes_receive = recv(sockfd,buf,sizeof(buf),0);
@@ -156,16 +157,34 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 
-		int bytes_write = fwrite(buf, sizeof(char), bytes_receive, file1);
-	    if(bytes_write < bytes_receive)
-		{
-	       perror("File write failed.\n");
-	    }
+		report+=buf;
 
-		if(bytes_receive<sizeof(buf)) break; //stop looping after recv done
+		unsigned found = report.rfind(end_mark);
+		if (found!=string::npos){//stop looping after end mark is detected
+			report.erase(found,end_mark.length()); //remove the end mark
+		    break;
+		}
+
+	}
+	cout<<"Client no."<<rank+1<<": report received."<<endl;
+
+	FILE *file1;
+	file1 = fopen(recv_file, "w+");
+
+	while(report.length()>0){
+		bzero(buf,MAXDATASIZE);
+		string tmp=report.substr(0,(report.length()>MAXDATASIZE)?MAXDATASIZE:report.length());
+		report.erase(0,tmp.length());//reduce the report to unsent part
+		strcpy(buf,tmp.c_str());
+
+		int bytes_write = fwrite(buf, sizeof(char), tmp.length(), file1);
+		if(bytes_write < tmp.length())
+		{
+		   perror("File write failed.\n");
+		}
 	}
 
-	cout<<"Client no."<<rank+1<<": report received and saved to "<<recv_file<<endl;
+	cout<<"Client no."<<rank+1<<": report saved to "<<recv_file<<endl;
 
 	//
 

@@ -14,7 +14,7 @@
 #include <sys/time.h>
 #include <semaphore.h>
 #include <time.h>
- #include <sys/times.h>
+#include <sys/times.h>
 #include <sys/vtimes.h>
 #include <ctime>
 #include <iostream>
@@ -202,6 +202,7 @@ void* serve_it(void* arg) //serving thread routine
 	//process the input
 	wc.setStr(receive);
 	report=wc.getSummary();
+	report+=end_mark;
 	cout<<"Service no."<<service_no<<": "<<"Processing complete. Length of report: "<<report.length()<<endl;
 	//cout<<report;
 
@@ -220,13 +221,13 @@ void* serve_it(void* arg) //serving thread routine
 			sem_post(&thread_sem);
 			pthread_exit(0);
 		}
-		nsleep(10);
+		//nsleep(10);
 	}
 
 	cout<<"Service no."<<service_no<<": A total of "<<sent_total<<" bytes have been sent back"<<endl;
 
 	time(&end_time);
-	double time_diff=end_time-start_time
+	double time_diff=end_time-start_time;
 	cout<<"Service no."<<service_no<<": Service finished. Time usage of this service: "
 			<<time_diff<<"s."<<endl;
 
