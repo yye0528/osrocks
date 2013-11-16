@@ -139,7 +139,7 @@ void* serve_it(void* arg)
 	serviceCount++;
 	pthread_mutex_unlock (&lock);
 
-	int csocket_df = (int) (arg);
+	int csocket_df = *((int*)(&arg));
 	int service_no=serviceCount;
 	int sent_total=0;
 	string end_mark="$END$";
@@ -242,10 +242,10 @@ void* serve_it(void* arg)
 void* stat(void* arg)
 {
 	int sem_value,thread_count;
-	time_t origin,now;
 	char timebuff[20];
-	double totalTime=0;
-	time(&origin);
+ 	struct timeval time_start, time_curr;
+ 	float total_time;
+ 	gettimeofday (&time_start, NULL);
 	while(1){
 		cout<<"Statistics thread is standing by. Enter any character to display"<<endl<<endl;
 		cin.ignore();
@@ -254,7 +254,8 @@ void* stat(void* arg)
 		thread_count=MAXTHREADNUM-sem_value;
 		time(&now);
 		strftime(timebuff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
-		totalTime=difftime(now,origin);
+		gettimeofday (&time_curr, NULL);
+		total_time=time_curr.tv_sec - time_start.tv_sec+((time_curr.tv_usec - time_start.tv_usec)/1000000.0);
 		cout<<"=========================================================="<<endl;
 		cout<<"Stat information as of "<<timebuff<<endl;
 		cout<<"Server process CPU usage: "<<get_cpu_usage()<<"%"<<endl;
@@ -262,7 +263,7 @@ void* stat(void* arg)
 		cout<<"Number of serving thread: "<<thread_count<<endl;
 		cout<<"Number of clients have been served: "<<serviceCount<<endl;
 		cout<<"Sum of time used in serving: "<<serviceTime<<"s"<<endl;
-		cout<<"Time since server started: "<<totalTime<<"s"<<endl;
+		cout<<"Time since server started: "<<total_time<<"s"<<endl;
 		cout<<"=========================================================="<<endl;
 	}
 }
