@@ -19,7 +19,8 @@
 #include <ctime>
 #include <iostream>
 #include <iomanip>
-#include "wordcount.h"
+#include <fstream>
+#include "wordcount_re2.h"
 
 using namespace std;
 
@@ -31,18 +32,21 @@ long serviceCount=0;	//total number client that had been served
 double serviceTime=0;	//total time since server program started
 static clock_t lastCPU, lastSysCPU, lastUserCPU; //for CPU usage stat
 static int numProcessors; //for CPU usage stat
+string log_note="default";
 pthread_mutex_t lock; //counter and timer lock
 sem_t thread_sem; //thread number semaphore
 
 void* serve_it(void*); //serving thread routine
-void* stat(void*); //statistics thread routine
+void* status(void*); //status thread routine
 void* get_in_addr(struct sockaddr *sa); //get ip address
 void cpu_usage_init(); //read number of cpu cores
 double get_cpu_usage(); //read cpu usage
 int get_memory_usage(); //read memory usage
 int parseLine(char*); //file parsing utility
+void update_log(long,float,float,float);
+float time_diff(struct timeval&,struct timeval&);
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
@@ -51,18 +55,25 @@ int main(void)
     int yes=1;
     int rv;
     char client_ip[INET6_ADDRSTRLEN];
-
     sem_init(&thread_sem, 0, MAXTHREADNUM);	//initialize the semaphore to 10
+
+    if (argc == 2) {
+    	string str(argv[1]);
+    	if(str.length()>0 && str.length()<50){
+    		log_note=str;
+    	}
+    }
+
 
     int thread_n=0; //serve_it thread iterator
     pthread_t t_id[MAXTHREADNUM]; //serve_it thread "pool"
-    pthread_t t_stat;	//thread for statistics
+    pthread_t t_status;	//thread for status
     pthread_attr_t attr;	//shared thread attributes
     pthread_attr_init(&attr); // Creating thread attributes
     pthread_attr_setschedpolicy(&attr, SCHED_FIFO); // FIFO scheduling for threads
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); // Don't want threads  waiting on each other
 
-    pthread_create(&t_stat, &attr, &stat, NULL); //start statistics thread
+    pthread_create(&t_status, &attr, &status, NULL); //start status thread
     cpu_usage_init();
 
     //initialize socket
@@ -108,7 +119,7 @@ int main(void)
 
     // main accept() loop
     while(1) {
-    	 cout<<"Server: waiting for new connections..."<<endl;
+    	cout<<"Server: waiting for new connections..."<<endl;
 
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
@@ -119,7 +130,7 @@ int main(void)
         inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),client_ip, sizeof client_ip);
     	cout<<"Server: connection from "<<client_ip<<" accepted."<<endl;
 
-        sem_wait(&thread_sem); //wait the thread semaphore
+    	sem_wait(&thread_sem); //wait the thread semaphore
         pthread_create(&t_id[thread_n], &attr, &serve_it,(void*)new_fd); //create a new thread to handle the connection
         thread_n=(thread_n+1)%MAXTHREADNUM; //increment the thread iterator
         cout<<"Server: new thread 'Service no."<<serviceCount+1<<"' is created to serve "<<client_ip<<endl;
@@ -127,8 +138,8 @@ int main(void)
         sleep(0); // Giving threads some CPU time
 
     }//end while
-    
-    return 0;
+    pthread_mutex_destroy(&lock);
+    pthread_exit(NULL);
 }
 
 //serving thread routine
@@ -139,7 +150,7 @@ void* serve_it(void* arg)
 	serviceCount++;
 	pthread_mutex_unlock (&lock);
 
-	int csocket_df = *((int*)(&arg));
+	int csocket_df = (int) arg;
 	int service_no=serviceCount;
 	int sent_total=0;
 	string end_mark="$END$";
@@ -148,18 +159,19 @@ void* serve_it(void* arg)
  	wordCount wc=wordCount();
     char buf[BUFFERSIZE];
  	bzero(buf,BUFFERSIZE);
- 	struct timeval tvalBefore, tvalAfter;
- 	gettimeofday (&tvalBefore, NULL);
+ 	struct timeval tval_thread_init,tval_receive_start,tval_receive_end,tval_wc_start,tval_wc_end,tval_send_start,tval_send_end;
+ 	gettimeofday (&tval_thread_init, NULL);
 
 	//check if df is passed properly
 	if (csocket_df < 0)
 	{ 
 		perror("ERROR: bad df in thread.");
 		sem_post(&thread_sem);
-		pthread_exit(0);
+		pthread_exit(NULL);
 	}
 
 	//read input from an accepted client
+	gettimeofday (&tval_receive_start, NULL);
 	while(1){
 		bzero(buf,sizeof(buf));
 		int bytes_receive = recv(csocket_df,buf,BUFFERSIZE,0);
@@ -172,13 +184,13 @@ void* serve_it(void* arg)
 			perror("ERROR: receive failed in thread.");
 			close(csocket_df);
 			sem_post(&thread_sem);
-			pthread_exit(0);
+			pthread_exit(NULL);
 		}
 
 		//cout<<"Service no."<<service_no<<": "<<bytes_receive<<"  bytes received"<<endl;
 		receive+=buf; //append content from buffer to string variable
 
-		unsigned found = receive.rfind(end_mark);
+		unsigned found = receive.find(end_mark);
 		if (found!=string::npos){//stop looping after end mark is detected
 		    receive.erase(found,end_mark.length()); //remove the end mark
 		    break;
@@ -191,22 +203,25 @@ void* serve_it(void* arg)
 
 		close(csocket_df);
 		sem_post(&thread_sem);
-		pthread_exit(0);
+		pthread_exit(NULL);
 	}
-
+	gettimeofday (&tval_receive_end, NULL);
 	cout<<"Service no."<<service_no<<": A total of "<<receive.length()+5<<" bytes have been received. Start to process..."<<endl;
 
 	//process the input
+	gettimeofday (&tval_wc_start, NULL);
 	wc.setStr(receive);
 	report=wc.getSummary();
 	report+=end_mark;
+	gettimeofday (&tval_wc_end, NULL);
 	cout<<"Service no."<<service_no<<": "<<"Processing complete. Length of report: "<<report.length()<<endl;
 	//cout<<report;
 
 	//send result back
+	gettimeofday (&tval_send_start, NULL);
 	while (report.length()>0){
 		bzero(buf,BUFFERSIZE);
-		string tmp=report.substr(0,(report.length()>BUFFERSIZE)?BUFFERSIZE:report.length());
+		string tmp=report.substr(0,( report.length()> (long) BUFFERSIZE)?BUFFERSIZE:report.length());
 		report.erase(0,tmp.length());//reduce the report to unsent part
 		strcpy(buf,tmp.c_str());
 		int bytes_sent = send(csocket_df,buf,tmp.length(),0);
@@ -216,30 +231,31 @@ void* serve_it(void* arg)
 			perror("ERROR writing to socket");
 			close(csocket_df);
 			sem_post(&thread_sem);
-			pthread_exit(0);
+			pthread_exit(NULL);
 		}
 	}
-
+	gettimeofday (&tval_send_end, NULL);
 	cout<<"Service no."<<service_no<<": A total of "<<sent_total<<" bytes have been sent back"<<endl;
 
-	gettimeofday (&tvalAfter, NULL);
-
-	float time_diff=tvalAfter.tv_sec - tvalBefore.tv_sec+((tvalAfter.tv_usec - tvalBefore.tv_usec)/1000000.0);
 	cout<<"Service no."<<service_no<<": Service finished. Time usage of this service: "
-			<<time_diff<<"s."<<endl;
+			<<time_diff(tval_thread_init,tval_send_end)<<"s."<<endl;
 
     pthread_mutex_lock (&lock);
-    serviceTime+=time_diff;
+    serviceTime+=time_diff(tval_thread_init,tval_send_end);
+    update_log(receive.length(),
+    		time_diff(tval_thread_init,tval_send_end),
+    		time_diff(tval_receive_start,tval_receive_end)+time_diff(tval_send_start,tval_send_end),
+    		time_diff(tval_wc_start,tval_wc_end));
 	pthread_mutex_unlock (&lock);
 
 	close(csocket_df); //close the client socket file description
 	sem_post(&thread_sem);
-	pthread_exit(0);
+	pthread_exit(NULL);
 
 }
 
-//statistics thread routine
-void* stat(void* arg)
+//status thread routine
+void* status(void* arg)
 {
 	int sem_value,thread_count;
 	char timebuff[20];
@@ -248,7 +264,7 @@ void* stat(void* arg)
  	float total_time;
  	gettimeofday (&time_start, NULL);
 	while(1){
-		cout<<"Statistics thread is standing by. Enter any character to display"<<endl<<endl;
+		cout<<"status thread is standing by. Enter any character to display"<<endl<<endl;
 		cin.ignore();
 		cin.get();
 		sem_getvalue(&thread_sem, &sem_value);
@@ -258,7 +274,7 @@ void* stat(void* arg)
 		gettimeofday (&time_curr, NULL);
 		total_time=time_curr.tv_sec - time_start.tv_sec+((time_curr.tv_usec - time_start.tv_usec)/1000000.0);
 		cout<<"=========================================================="<<endl;
-		cout<<"Stat information as of "<<timebuff<<endl;
+		cout<<"Server status as of "<<timebuff<<endl;
 		cout<<"Server process CPU usage: "<<get_cpu_usage()<<"%"<<endl;
 		cout<<"Server process RAM usage: "<<get_memory_usage()<<"KB"<<endl;
 		cout<<"Number of serving thread: "<<thread_count<<endl;
@@ -266,7 +282,9 @@ void* stat(void* arg)
 		cout<<"Sum of time used in serving: "<<serviceTime<<"s"<<endl;
 		cout<<"Time since server started: "<<total_time<<"s"<<endl;
 		cout<<"=========================================================="<<endl;
+		//sleep(1);
 	}
+	pthread_exit(NULL);
 }
 
 // get ip address
@@ -326,7 +344,8 @@ double get_cpu_usage(){
     return percent;
 }
 
-int get_memory_usage(){ //Note: this value is in KB!
+int get_memory_usage()
+{ //Note: this value is in KB!
     FILE* file = fopen("/proc/self/status", "r");
     int result = -1;
     char line[128];
@@ -342,10 +361,28 @@ int get_memory_usage(){ //Note: this value is in KB!
     return result;
 }
 
-int parseLine(char* line){
+int parseLine(char* line)
+{
     int i = strlen(line);
     while (*line < '0' || *line > '9') line++;
     line[i-3] = '\0';
     i = atoi(line);
     return i;
+}
+
+void update_log(long file_size,float total_time, float network_time, float wc_time)
+{
+	time_t now;
+	time(&now);
+	char timebuf[20];
+	strftime(timebuf, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+    ofstream log_file("server_log.csv", ios_base::out | ios_base::app );
+    log_file << timebuf<<","<<file_size<<","<<total_time<<","<<network_time<<","<<wc_time<<","<<log_note<<endl;
+
+}
+
+float time_diff(struct timeval &start,struct timeval &end){
+	float diff=end.tv_sec - start.tv_sec+((end.tv_usec - start.tv_usec)/1000000.0);
+
+	return diff;
 }

@@ -1,0 +1,326 @@
+Statistics thread is standing by. Enter any character to display
+
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.1' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.1: A total of 28810 bytes have been received. Start to process...
+Service no.1: Processing complete. Length of report: 70713
+Service no.1: A total of 70713 bytes have been sent back
+Service no.1: Service finished. Time usage of this service: 2.37s.
+==========================================================
+Stat information as of 2013-11-10 22:25:21
+Server process CPU usage: 0.593673%
+Server process RAM usage: 2012KB
+Number of serving thread: 0
+Number of clients have been served: 1
+Sum of time used in serving: 2.37s
+Time since server started: 399s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+==========================================================
+Stat information as of 2013-11-10 22:26:00
+Server process CPU usage: 0%
+Server process RAM usage: 2028KB
+Number of serving thread: 0
+Number of clients have been served: 1
+Sum of time used in serving: 2.37s
+Time since server started: 438s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+==========================================================
+Stat information as of 2013-11-10 22:26:14
+Server process CPU usage: 0%
+Server process RAM usage: 2032KB
+Number of serving thread: 0
+Number of clients have been served: 1
+Sum of time used in serving: 2.37s
+Time since server started: 452s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+==========================================================
+Stat information as of 2013-11-10 22:26:15
+Server process CPU usage: 0%
+Server process RAM usage: 2032KB
+Number of serving thread: 0
+Number of clients have been served: 1
+Sum of time used in serving: 2.37s
+Time since server started: 453s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.2' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.2: A total of 28810 bytes have been received. Start to process...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.3' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.3: A total of 20580 bytes have been received. Start to process...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.4' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.4: A total of 37040 bytes have been received. Start to process...
+==========================================================
+Stat information as of 2013-11-10 22:27:49
+Server process CPU usage: 3.08153%
+Server process RAM usage: 2032KB
+Number of serving thread: 3
+Number of clients have been served: 4
+Sum of time used in serving: 2.37s
+Time since server started: 547s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Service no.3: Processing complete. Length of report: 51862
+Service no.3: A total of 51862 bytes have been sent back
+Service no.3: Service finished. Time usage of this service: 4.04s.
+==========================================================
+Stat information as of 2013-11-10 22:27:52
+Server process CPU usage: 53.2213%
+Server process RAM usage: 2168KB
+Number of serving thread: 2
+Number of clients have been served: 4
+Sum of time used in serving: 6.41s
+Time since server started: 550s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Service no.2: Processing complete. Length of report: 70713
+Service no.2: A total of 70713 bytes have been sent back
+Service no.2: Service finished. Time usage of this service: 6.54s.
+==========================================================
+Stat information as of 2013-11-10 22:27:58
+Server process CPU usage: 37.6238%
+Server process RAM usage: 2508KB
+Number of serving thread: 1
+Number of clients have been served: 4
+Sum of time used in serving: 12.95s
+Time since server started: 556s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Service no.4: Processing complete. Length of report: 86571
+Service no.4: A total of 86571 bytes have been sent back
+Service no.4: Service finished. Time usage of this service: 8.06s.
+==========================================================
+Stat information as of 2013-11-10 22:28:07
+Server process CPU usage: 12.7635%
+Server process RAM usage: 2332KB
+Number of serving thread: 0
+Number of clients have been served: 4
+Sum of time used in serving: 21.01s
+Time since server started: 565s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+==========================================================
+Stat information as of 2013-11-10 22:28:26
+Server process CPU usage: 0%
+Server process RAM usage: 2332KB
+Number of serving thread: 0
+Number of clients have been served: 4
+Sum of time used in serving: 21.01s
+Time since server started: 584s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.5' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.6' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.7' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.8' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.9' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.10' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.11' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.12' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.5: A total of 20585 bytes have been received. Start to process...
+Service no.9: A total of 20585 bytes have been received. Start to process...
+Service no.7: A total of 20585 bytes have been received. Start to process...
+Service no.6: A total of 32933 bytes have been received. Start to process...
+Service no.8: A total of 32933 bytes have been received. Start to process...
+Service no.10: A total of 41165 bytes have been received. Start to process...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.13' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.11: A total of 32933 bytes have been received. Start to process...
+Service no.13: A total of 20580 bytes have been received. Start to process...
+Service no.12: A total of 28810 bytes have been received. Start to process...
+Server: connection from 127.0.0.1 accepted.
+Server: new thread 'Service no.14' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.14: A total of Server: connection from 127.0.0.1 accepted.
+37040 bytes have been received. Start to process...
+==========================================================
+Stat information as of 2013-11-10 22:28:51
+Server process CPU usage: 21.4199%
+Server process RAM usage: 2508KB
+Number of serving thread: 10
+Number of clients have been served: 14
+Sum of time used in serving: 21.01s
+Time since server started: 609s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Service no.5: Processing complete. Length of report: 52657
+Service no.9: Processing complete. Length of report: 52448
+Service no.5: A total of 52657 bytes have been sent back
+Service no.5: Service finished. Time usage of this service: 13.55s.
+Server: new thread 'Service no.15' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Service no.15: A total of 24695 bytes have been received. Start to process...
+Service no.9: A total of 52448 bytes have been sent back
+Service no.9: Service finished. Time usage of this service: 13.59s.
+Server: new thread 'Service no.16' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Service no.16: A total of 41155 bytes have been received. Start to process...
+Service no.7: Processing complete. Length of report: 52258
+Service no.7: A total of 52258 bytes have been sent back
+Service no.7: Service finished. Time usage of this service: 13.81s.
+Server: new thread 'Service no.17' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Service no.17: A total of 37040 bytes have been received. Start to process...
+Service no.13: Processing complete. Length of report: 51862
+Service no.13: A total of 51862 bytes have been sent back
+Service no.13: Service finished. Time usage of this service: 14.58s.
+Server: new thread 'Service no.18' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Service no.18: A total of 28810 bytes have been received. Start to process...
+==========================================================
+Stat information as of 2013-11-10 22:29:05
+Server process CPU usage: 65.097%
+Server process RAM usage: 3172KB
+Number of serving thread: 10
+Number of clients have been served: 18
+Sum of time used in serving: 76.54s
+Time since server started: 623s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+==========================================================
+Stat information as of 2013-11-10 22:29:27
+Server process CPU usage: 35.6019%
+Server process RAM usage: 3172KB
+Number of serving thread: 10
+Number of clients have been served: 18
+Sum of time used in serving: 76.54s
+Time since server started: 645s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Service no.12: Processing complete. Length of report: 70713
+Service no.12: A total of 70713 bytes have been sent back
+Service no.12: Service finished. Time usage of this service: 26.44s.
+Server: new thread 'Service no.19' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Service no.19: A total of 20580 bytes have been received. Start to process...
+==========================================================
+Stat information as of 2013-11-10 22:29:42
+Server process CPU usage: 39.0489%
+Server process RAM usage: 3296KB
+Number of serving thread: 10
+Number of clients have been served: 19
+Sum of time used in serving: 102.98s
+Time since server started: 660s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Service no.15: Processing complete. Length of report: 60955
+Service no.15: A total of 60955 bytes have been sent back
+Service no.15: Service finished. Time usage of this service: 20.09s.
+Server: new thread 'Service no.20' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Server: connection from 127.0.0.1 accepted.
+Service no.6: Processing complete. Length of report: 81788
+Service no.20: A total of 32925 bytes have been received. Start to process...
+Service no.8: Processing complete. Length of report: 80513
+Service no.6: A total of 81788 bytes have been sent back
+Service no.6: Service finished. Time usage of this service: 33.77s.
+Server: new thread 'Service no.21' is created to serve 127.0.0.1
+Server: waiting for new connections...
+Service no.21: A total of 28817 bytes have been received. Start to process...
+Service no.8: A total of 80513 bytes have been sent back
+Service no.8: Service finished. Time usage of this service: 33.86s.
+Service no.11: Processing complete. Length of report: 81778
+Service no.11: A total of 81778 bytes have been sent back
+Service no.11: Service finished. Time usage of this service: 34.19s.
+==========================================================
+Stat information as of 2013-11-10 22:30:02
+Server process CPU usage: 37.6682%
+Server process RAM usage: 3632KB
+Number of serving thread: 8
+Number of clients have been served: 21
+Sum of time used in serving: 224.89s
+Time since server started: 680s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+Service no.19: Processing complete. Length of report: 52420
+Service no.19: A total of 52420 bytes have been sent back
+Service no.19: Service finished. Time usage of this service: 12.6s.
+Service no.18: Processing complete. Length of report: 71838
+Service no.18: A total of 71838 bytes have been sent back
+Service no.18: Service finished. Time usage of this service: 25.11s.
+Service no.14: Processing complete. Length of report: 86571
+Service no.14: A total of 86571 bytes have been sent back
+Service no.14: Service finished. Time usage of this service: 41.08s.
+Service no.10: Processing complete. Length of report: 99570
+Service no.10: A total of 99570 bytes have been sent back
+Service no.10: Service finished. Time usage of this service: 45.73s.
+Service no.17: Processing complete. Length of report: 90493
+Service no.17: A total of 90493 bytes have been sent back
+Service no.17: Service finished. Time usage of this service: 34.12s.
+Service no.21: Processing complete. Length of report: 71195
+Service no.21: A total of 71195 bytes have been sent back
+Service no.21: Service finished. Time usage of this service: 14.8s.
+Service no.16: Processing complete. Length of report: 101059
+Service no.20: Processing complete. Length of report: 80724
+Service no.16: A total of 101059 bytes have been sent back
+Service no.16: Service finished. Time usage of this service: 36.28s.
+Service no.20: A total of 80724 bytes have been sent back
+Service no.20: Service finished. Time usage of this service: 16.24s.
+==========================================================
+Stat information as of 2013-11-10 22:31:13
+Server process CPU usage: 19.9915%
+Server process RAM usage: 3296KB
+Number of serving thread: 0
+Number of clients have been served: 21
+Sum of time used in serving: 450.85s
+Time since server started: 751s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
+==========================================================
+Stat information as of 2013-11-10 22:31:16
+Server process CPU usage: 0%
+Server process RAM usage: 3296KB
+Number of serving thread: 0
+Number of clients have been served: 21
+Sum of time used in serving: 450.85s
+Time since server started: 754s
+==========================================================
+Statistics thread is standing by. Enter any character to display
+
